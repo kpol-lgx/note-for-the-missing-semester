@@ -1,2 +1,10 @@
-9 ./semeter | grep -i ".*last.*" | cut --delimter=' ' -f2- > ~/last_modify.txt
-10 cat /sys/class/power_supply/BAT0/capacity_level
+4. 
+echo '#!/bin/sh' > semester
+echo 'curl --head --silent https://missing.csail.mit.edu' >> semester
+
+注意: # 在 bash 中表示注释，! 即使被 " 包围也有特殊含义，所以这里需要 ' 包围
+
+9.
+./semeter | grep -i ".*last.*" | cut --delimter=' ' -f2- > ~/last_modify.txt
+10.
+cat /sys/class/power_supply/BAT0/capacity_level
