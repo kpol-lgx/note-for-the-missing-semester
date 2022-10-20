@@ -1,2 +1,4 @@
-22/09/26 22:32:29
-finsh 1th
+# Note for the missing semester
+[课程链接](https://missing-semester-cn.github.io/)
+
+
