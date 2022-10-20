@@ -1,0 +1,2 @@
+9 ./semeter | grep -i ".*last.*" | cut --delimter=' ' -f2- > ~/last_modify.txt
+10 cat /sys/class/power_supply/BAT0/capacity_level

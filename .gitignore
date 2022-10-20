@@ -1,0 +1,5 @@
+*.png
+*.sh
+*.log
+!*.txt
+!*.md

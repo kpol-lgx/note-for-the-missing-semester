@@ -1,0 +1,37 @@
+# 1.
+	pkill 封装了 grep 和 kill。
+	pkill -SIGNAL name 即可
+	为什么需要 pgrep ? 
+
+# 2.
+	#!/usr/bin/env bash
+	pidwait() {
+		while kill -0 "$1" 2> /dev/null
+		do
+			sleep 1
+		done
+	}
+	
+	一个循环结构，
+	kill -0 "$1" 2> /dev/null
+	> kill 不发送信号给 $1 ，$1 存在 kill 返回状态码 0
+	> $1 不存在 kill 返回非零状态码，还有一条错误信息
+	> 2> /dev/null 将错误信息扔到 /dev/null 垃圾桶里 
+	> while 循环执行 kill , 只要返回状态码是 0 ，while 
+	> 就会执行 do ... done 之间的命令
+	> 如果不是 0 ，while 会停止循环退出
+	> sleep 1 进程没有结束就睡 1 秒，避免消耗cpu性能太多
+
+# 3. 
+	$ history | awk '{$1"";print substr($0,2)}' | sort | uniq | -c | sort -n | tail -n 10
+	显示最常用的 10 条命令
+	注意 HISTSIZE=5000 更改最大储存的命令数量
+	
+# 4.
+	ls . | xargs ln -st ~
+	这条命令对当前文件下的所有文件及文件夹建立符号链接，
+	符号链接放置在 ~ 目录下，并且保持本名
+
+# 5.
+	eval ssh-agent $SHELL; 启动一个 ssh-agent 服务
+	ssh-copy-id name

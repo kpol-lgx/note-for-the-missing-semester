@@ -1,0 +1,38 @@
+date
+echo hello
+echo hello\ world
+echo $PATH
+which echo
+pwd
+cd /home
+cd ..
+cd ./home
+ls
+cd ~
+cd -
+ls --help
+ls -l 
+> d directory
+> - file
+> own; group of owns; everyone
+> cd 命令必须对于父目录拥有执行权限
+> 如果对于文件拥有 w 权限，但是对于父目录没有
+> 那么最多清空文件，不能删除文件
+mv 
+> rename and move
+cp 
+rm
+rmdir
+mkdir 
+man
+< file > file; 前一个是将 file 内容作为 input 后一个是将 file 作为 output
+cat file
+cat < file
+cat < file > file1
+>> ; 追加
+cat < file >> file1
+| ; 将左边程序的输入作为右边程序的输出
+sudo ; do as su
+sudo su;
+tee;
+xdg-open file; 自动使用合适的软件打开文件

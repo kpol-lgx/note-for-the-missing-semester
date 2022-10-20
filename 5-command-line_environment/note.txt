@@ -1,0 +1,87 @@
+- Jop control
+- Terminal Mull
+
+sleep 20;
+ctrl+c; stopped the execution of the process
+	send a signal called SIGINT
+	the stans for signal interrupt
+
+man 7 signal
+
+3 SIGQIUT ctrl+\
+15
+1 hang-up in terminal; close your terminal but still running
+
+stopping interrupting programs and asking them to finish
+
+17 pause the execution of the program
+19 continuing the execution of the program at a point later in line
+
+SIGKILL 无法被捕捉，无论如何一定停止程序 可能会留下孤儿子程序
+
+log off 时：是 hang-up 信号 SIGHUP
+
+SIGSOPT ctrl+z suspended 暂停
+nohup sleep 2000 & ; & 后台模式，腾出命令行
+
+bg %1; 指明希望第一个进程继续运行
+
+kill ; allows you to send any sort of Unix signal
+kill -STOP %1
+
+nohup ; 在远程服务器上使用程序之前，先要加一个 nohup
+; nohup 可以让程序无视 SIGHUP 信号
+kill -HUP %2;
+kill -KILL %2; 停止，无论如何
+jobs ; 显示所有的后台任务
+
+==================================
+tmux:
+- Sessions
+- windows
+- panes
+
+tmux 的绑定键：
+前缀+d，表示挂起一个 session
+tmux a -t <number> 表示回到原来挂起的 sessions 当然，可以 -t 指定
+没有 -t 也会回到之前退出的 session
+
+tmux new -t foobar 创建一个新的 session 并且指定名称
+tmux ls 显示有多少个 session
+
+前缀+c 创建新的 window
+前缀+p 跳转到前一个 window
+前缀+n 跳转到后一个 window
+ctrl+d 关闭当前窗口
+前缀+number 跳转到指定的 window 默认情况下都是以数字命名的
+
+前缀+, 可以修改当前窗口的名称，这对于任务管理非常有用。
+	窗口名称最好是与包含的任务紧密相关
+
+前缀+space 可以在几个不同的布局之间切换
+前缀+z 可以在当前 window 最大化当前 pane， 重复一次恢复原来的布局
+	注意这不会开启一个新的 window 仅仅是隐藏了其他的 pane
+
+alias
+
+~/.config/
+
+ssh name@url <cmd> 
+	可以将 cmd 在 remote 上执行并且结果返回本地
+
+ssh-keygen
+ssh-keygen -o -a 100 -t ed25519
+	用于生成密钥对
+
+密钥中保存的是一串字符
+cat file | ssh name@url tee file
+	抄送到指定的文件中
+
+ssh-copy-id
+	给密钥加一个口令非常有用，
+	同时使用 ssh-copy-id 可以用本地的可用口令自动
+	填充，这样不需要重复填
+
+scp
+rsync
+	两个非常有用的传送文件的指令

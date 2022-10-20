@@ -1,0 +1,169 @@
+# tsp 是一台远程机器的名字
+
+ssh tsp journalctl
+
+ssh tsp journalctl | grep ssh
+> 使用 grep 简化输出
+
+ssh tsp journalctl | grep ssh | grep "Disconnected from"
+> 假设我们需要关注失败的登陆 
+> 将整个 logfile 发送过来并且在本地执行 grep
+> 但是这样做十分浪费，毕竟绝大所数行并不需要
+
+ssh tsp 'journalctl | grep ssh | grep "Disconnected from"' | less
+> 单引号告诉 ssh ，命令在远程机器上直接执行，我们需要的内容通过
+> 管道 pipe 传递给 less
+> 这样发送过来的内容十分精简
+> less 是一个页面浏览器(pager) 十分适合阅读长篇文本
+
+ssh tsp 'journalctl | grep ssh | grep "Disconnected from"' > ssh.log
+> 如果需要重复多次操作 logfile 并且网络不稳定，
+> 那么可以直接下载 logfile 到本地
+
+less
+> 采用和 vim 接近的绑定键
+> 比如 ctrl+u/d 上下滚动 q 退出
+
+sed
+> 仍然保留大量无用信息
+> 这里使用 sed 进一步过滤
+> sed 是一个流 stream 文本编辑器
+> 它是 ed 的进化版本(ed 由于操作过于诡异 weird,没有人再使用了)
+# 什么是流？
+# 将文件想象成一碗长寿面，sed 从头开始不间断吃下去
+# 每次吃完一行，sed 会停下来“消化“
+# ”消化“结束后继续吃
+# 这就是流文本编辑器
+# “消化”通过一系列表达式实现，可以认为这也是一种编程语言
+> sed 的功能十分强大
+
+cat ssh.log | sed 's/.*Disconnected from//'
+> 我们对于 Disconnected from 之前的内容不感兴趣
+> 因为这部分出现在每一行 log 中，并且完全一致
+> s 代表 substitute 替换
+> s 有两个参数，被 / slash 分别包围
+> 第一个参数是你希望 s 搜索的字符串 这里使用了通配符
+# 准确来说，这是正则表达式
+# 这是种强大的 match text 的方式
+# . ; 匹配任意一个字符
+# * ; 如果跟在一个字符后面，表示匹配任意个这个字符
+# + ; 如果跟在一个字符后面，表示匹配至少一个该字符
+# []; 匹配方括号内的任意一个字符
+	[ab]; either a or b
+	[a-z]; 
+# .* ; 组合，匹配任意长度字符串
+# \. ; 匹配 .
+# \* ; 匹配 *
+> 第二个参数是提供的替换字符串，这里 // 表示空，也就是说删除不写入
+
+cat ssh.log | sed 's/.*Disconnected from//g'
+> g 修饰符，尽可能多次匹配，默认一行只匹配一次
+
+cat "abcab" | sed -E 's/(ab)*//g'
+> sed 是一个很老的工具了，所以默认只支持很旧的正则
+> -E 告诉 sed 使用更加现代化的正则表达式
+> (ab) 圆括号将内部作为一个整体
+> (ab)* 匹配内部字符串 ab 连续任意个
+> g 匹配任意次
+> 同样的可以转译
+> \(
+> \)
+
+cat "abcababc" | sed -E 's/(ab|bc)*//g'
+> | 表示或，匹配 ab 或者 bc
+
+cat ssh.log | sed -E 's/^.*Disconnected from (invalid |authenticating )?user .* [0-9.]+ port [0-9]+( \[preauth\])?$//' | head -n5
+
+capture groups
+> 告诉 sed 想要记住那些内容并且之后还要用到
+> 任何括号表达式以及插入表达式都算 capture groups
+
+cat ssh.log | sed -E 's/^.*Disconnected from (invalid |authenticating )?user (.*) .* [0-9.]+ port [0-9]+( \[preauth\])?$/\2/' | head -n5
+> 在第二个参数中，加入\2 表示提供的替换字符串是第二个括号表达式的内容
+
+如前所述
+> 正则表达式书写十分复杂
+> 所以一个 正则 debugger 十分必要
+> https://regex101.com/r/qqbZqh/2
+> 这是一个在线的 debugger
+
+wc -l ; 计算输入行数
+sort
+	sort -nk1.1
+		-n 按照数字而不是 ascii 码排序
+		-k 默认选择空格
+		1,1 起始第一列，终止第一列
+			默认是第一行开始
+			默认选择空格
+
+unique -c ; -c 返回行数
+tail -n10 前10行
+
+awk '{print $2}' | paste -sd,
+> awk 是一个 column based stream processor
+> awk 聚集于 columnar data
+> 这里指明只打印第二行
+> paste 也是个命令
+> -s 指明将输入的所有行合并为一行
+> -d 指明分隔符，这里是 ','
+
+awk - a power language
+sort | uniq -c | awk '$1 == 1 && $2 ~ /^c.*e$/ {print $2}'
+> 这里 awk 指明第一列等于 1 
+> 第二列匹配后面的正则
+> ~ 代表匹配
+> ^ 代表行首
+> $ 代表行尾
+> 正则通过 / / 包围
+> 这里寻找那些出现一次，同时以 c 开头，以 e 结尾的字符串并且打印
+
+sort | uniq -c | awk 'BEGIN {row == 0} $1 == 1 && $2 ~ /^c.*e$/ {rows += 1} END { print rows }'
+> BEGIN 表示开始，这里在开始匹配的时候定义一个名叫 row 的变量，大小为 0
+> {rows += 1} 每次匹配成功后都 rows+=1
+> END 结束，这里在结束匹配时打印 rows
+
+
+bc 
+> -l 定义标准数学库
+sort | uniq -c | awk '$1 != 1 { print $1 }' | paste -sd+ | bc -l
+> 打印出数字之后，用 + 将其连接为一行 最后使用 bc 计算
+
+R
+> the separate programming language that's
+> specifically built for a statictical analysis
+R --slave -e 'x <- scan(file="stdin", quiet=TRUE); summary(x)'
+
+gnuplot
+sort -nk1,1 | tail -n5 | gnuplot -p -e 'set boxwidth 0.5; plot "-" using 1:xtic(2) with boxes'
+
+ffmpeg
+> for encoding and decoding video and to some extent images
+
+ffmpeg -loglevel panic -i /dev/video0 -frames 1 -f image2 - | convert - -colorspace gray - | gzip | ssh ubuntu_os 'gzip -d | tee copy.png' | feh -
+
+> -loglevel panic 设定日志等级，避免输出一大堆信息
+> -i /dev/video0 从这个设备输入 
+> /dev/video0 是 webcam 网络摄像头
+> -frames 1 采取第一种
+> -f image2 拍照而不是录像
+> - 横线通常表示使用标准输入输出 这里就是说输出到 stdout
+> 随后使用 convert
+> - 表示从 stdin 读取
+> -colorspace gray 转换为灰度图像
+> - 输出到 stdout
+> gzip 压缩
+> ssh 传送到远程服务器
+> 在远程服务器解压缩
+> tee copy.png 储存一份备份
+> feh - ; feh 是一个轻量化的图片显示器，从标准输入读入
+##### 上面的命令可以在本地拍摄一张照片并且发送到远程服务器，在远程服务器上留存一份备份
+##### 最后通过管道返回本地再显示
+
+ssh ubuntu_os:copy.png .
+> 将远程服务器文件复制到本地
+
+convert
+> image manipulation program
+
+cat /dev/video0 | ssh 
+> 甚至可以通过 pipe 发送给远程服务器，然后通过一个视频播放器获得在线视频

@@ -1,0 +1,52 @@
+1.
+ls -a
+ls -hl
+ls -ult
+ls --color=auto
+==============================
+2.
+marco () {
+	MARCOPWD=$(pwd)
+}
+
+polo () {
+	cd $MARCOPWD
+}
+
+只需要设置好环境变量即可
+==============================
+3.
+#!/usr/bin/env bash
+
+n=$(( RANDOM % 100 ))
+
+if [[ n -eq 42 ]]; then
+	echo "Something went wrong"
+	>&2 echo "The error was using magic numbers"
+	exit 1
+fi
+
+echo "Everything went according to plan"
+==============================
+#!/usr/bin/env bash
+x=0
+while [ $x -lt 300 ]
+do
+	./tt2.sh >> ./stdout.txt 2>> ./stderror.txt
+	if [ $? -ne 0 ]
+	then
+		echo $x
+		break
+	fi
+	x=$[ $x + 1 ]
+done
+
+4.
+这些命令可以接受参数或者是标准输入作为输入
+管道可以将 stdin 和 stdout 连接起来，
+但是一些命令必须从参数接受输入
+这时可以使用 xargs , 它将 stdin 作为参数传递
+
+#!/usr/bin/env bash
+
+find . -name "*.heml" -type f | xargs zip html.zip

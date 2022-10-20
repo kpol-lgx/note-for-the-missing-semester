@@ -1,0 +1,123 @@
+12/23
+source mcd.sh # execute this script and load it
+mcd test # call mcd in mcd.sh
+
+$0 # the name of the script that we're running
+$# # the number of arguments that we give to the command
+$? # error code from the previous command (the p-com)
+
+$$ # the process ID of this com that is running
+$@ # can expand all the arguments, maybe $1 and $2 and ...
+/dev/null # dustbin, if you don't care about sth, throw it into /dev/null
+
+> /dev/null 2> /devnull # stdout, stderr 
+$_ # the last argument of the p-com
+!! # execute the p-com and presement the current command (the c-com) to stdout 
+
+the 1-com; the 2-com # one line, all execute
+echo "$foo" # expanded
+echo '$foo' # not expanded
+echo "$(pwd)" # the program, pwd.
+
+cat <(ls) <(ls ..) # executing the com and putting it into a temporary file, doing the same thing for the parent folder, and then concatenating both files.
+
+-ne # not equal. Read man test, get more infomation.
+if [[ "$?" -ne 0 ]]; then ...
+
+touch foo{,2,10} # touch foo1, foo2, foo10
+touch project{1,2}/src/test/test{1,2,3}.py # 2*3=6
+touch foo{1,2}/{a..j} # 2*10=20
+
+touch foo/x bar/y
+diff <(ls foo) <(ls bar)
+
+#!/usr/bin/env python # shebang
+shellcheck # check you shell scrpit
+
+rg
+fd
+locate
+ag
+history
+fzf
+broot
+
+==============================
+
+foo=bar
+echo "$foo"
+echo '$foo' 
+
+$0 # the name of script
+$1 # the first parameter, sh recevied
+$? # error code from the previous cmd
+$_ # 上一条命令的最后一个参数
+!! # 重复上一条命令
+
+true # return 0
+false # return 1
+|| # 短路
+; # 分割命令
+
+foo=$(pwd) # pwd 的输出作为 foo 而不是 pwd 本身
+cat <(ls) # <( ) 小括号内的命令输出作为 stdin
+
+$# # 变量个数
+$$ # 脚本 pid
+
+#@ # 将被扩展为所有输入的变量 $1 $2 $3 ...
+
+/dev/null # Unix 类系统的垃圾箱，任何东西丢入都可以被删除
+> # 重定向 stdout
+2> # 重定向 stderror
+
+man test # 包含很多 shell 比较脚本相关的东西
+-ne # 不相等
+*.sh # globbing 匹配
+pro? # ? 仅仅匹配一个字符
+convert # 转换在不同文件格式之间
+convert image.png image.jpg
+convert image.{png,jpg} # 自动扩展，相当有用
+touch foo{,1,2,10} # 
+touch foo{1,2,3}/src/test/test{1,2,3}.py # 多次扩展
+touch {foo,bar}/{a..j}
+
+diff <(ls) <(ls ..)
+
+shellcheck # 检查脚本错误
+tldr
+man 
+
+find . -name src -type d # 在当前目录下寻找名字是 src 类型是 directory 的所有
+find . -name '*.txt' -type f # 所有以 txt 为后缀的文件
+find . -path '**/test/*.py' -type f # 指定相似的路径
+find . -mtime -1 # 昨天已经修改的文件
+find . -name '*tmp' -exec rm {} \; # 找到所有 .tmp 结尾的文件并且删除
+fd '*.txt' # find 的一种简化命令替代
+
+locate tmp # 在文件系统中查找符合的文件
+updatedb # 更新数据
+
+grep foobar mcd.sh # 在 mcd.sh 中搜索 foobar
+grep -R cd . # 在当前目录的每一个文件中寻找 cd 这个字符串
+
+搜索代码片段
+rg "import numpy" -t py . # 在当前目录下搜索所有 py 类型的文件，寻找其中含有 "import numpy" 的语句
+rg "import numpy" -t py -C 5 . # 相比之下，显示目标附近 5 行的语句
+rg -u --files-without-match "^#!" -t sh # -u 是指不忽略隐藏文件
+# --files-without-match 寻找不匹配的文件
+# "^#!" : ^ 指段首 就是段首 #! 的
+rg "import numpy" -t py -C 5 --stats . # --stats 显示总结信息
+
+ack
+ag
+
+history 1 | grep convert # 从第一条开搜索 convert
+
+ctrl-r : 进入搜索模式，输入需要搜索的词，继续按 ctrl-r 不断切换
+fzf 是一个高级模糊搜索工具，绑定快捷键之后，可以按 ctrl-r 进行交互式搜索
+
+ls -R # 列出每个文件夹下的文件 
+tree # 树形结构
+broot # 同样是树形结构，更加优雅 空格之后 q 然后 enter 是退出
+nnn # 文件管理器
