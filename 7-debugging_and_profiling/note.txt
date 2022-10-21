@@ -1,0 +1,204 @@
+1. print debug
+	在程序中设置 print 语句，输出需要的量
+	这是一种非常好的 debug 方式，方便快捷。
+
+*此外还有一些稍微复杂方式可以 debug*
+2. logging
+	优点：log 可以适用于整个程序，不像 print , 后者需要为
+	每一个可能的错误设计 print
+	log 可以设置 severity level 并且基于此过滤 log
+
+	/var/log log 文件
+	lnav 用于查看分析日志文件的工具
+
+	journalctl:linux 的日志工具
+	log show:mac 的日志工具
+
+	logger 创建一条日志信息放到系统文件中
+		logger "hello"
+
+	journalctl -f 实时输出最近的十条日志
+
+
+printf "\e[38;2;255;0;0m This is red	\e[0m"
+255;0;0 RGB 值
+
+
+python -m ipdb bubble.py
+	ipython 的 debugger
+	ipdb 是一个 debug 的函数库
+	进入交互式命令，
+	l -- list 列出代码
+	s 单步执行，一次一行
+	没有命令输入时，按 enter 会重复上一条命令，这很像 gdb
+	restart 重启程序
+	c 继续执行直到问题所在
+	p var 打印 var 的值
+	q 退出
+	b 6 在第 6 行设置断点
+	p locals() 
+		locals() 是一个 python 函数，显示所有本地变量
+
+gdb --args sleep 20
+	gdb 对于 c/c++ 以及所有的类 c 代码非常好用
+	事实上，gdb 可以帮助处理任何可执行的二进制文件
+
+sudo strace ls -l > /dev/null
+	忽略 ls -l 的输出，但是不忽略 strace 的输出
+	显示 ls 执行的所有系统调用以及一些其他信息
+
+lstat 获取文件的状态
+sudo strace -e lstat ls -l > /dev/null
+
+static analysis tool 静态分析工具
+	在不需要执行程序的情况下分析代码中的错误
+
+pyflakes
+	python 的 static analysis tool
+
+mypy 另一个静态分析工具
+
+将这些静态分析工具集成到 vim 中是个好选择
+
+writegood
+	一个英文静态分析工具，用于检查英语书写格式以及文法是否错误
+
+web development
+	web 开发通常使用 firefox 和 chrome 
+	这两者都有一系列非常好的用于 debugger 的工具
+
+	右键开启菜单并且进入 inspect
+	修改代码即可修改当前展示的页面
+
+*不应当轻易相信任何网站截图，因为这可以被轻易更改*
+
+# profiling
+1. print 运行时间
+	在 python 中
+	import time
+	start = time.time()
+	....
+	end = time.time()
+	cost = end - start
+	在 ... 处放置需要的代码，就能分析出花费时间的多少
+	
+	而在 c 语言中，使用 time.h 和 clock() 函数
+	#include<time.h>
+	
+	int start = clock();
+	...
+	int end = clock();
+	
+	double cost = (double)(end - start)/CLOCKS_PER_SEC;
+	CLOCKS_PER_SEC 代表每秒经过了多少个时钟周期，在不同的机器上不同
+	
+	实际操作时，经常发现输出值比真实值大一点。比如 python 中执行
+	time.sleep(0.5) 理论应该输出 0.5 作为结果，但是实际输出可能是0.5000146
+	这是因为有其他程序运行，抢走了一部分 cpu 时间
+
+	time 命令：
+		real time 表示从程序开始执行到结束经历的真实时间
+		user tiem 表示程序执行用户层级代码在 cpu 上花费的时间
+			which is the amount of time your program spent on
+			the CPU doing user level cycles
+			在 Unix 上，可以运行用户级或者内核级代码
+		system time 和 user time 正好相反，是你的程序
+		执行内核模式指令 cpu 所花费的时间
+
+2. tracing profilers and sampling profilers
+	区别：
+	tracing profilers 
+		会执行你的代码，并且每次进入一个函数调用时
+		会做一个标记表明何时进入。最后执行完成，会报告用时最长的函数调用
+	sampling profilers 
+		同样执行代码，但是每隔固定时间间隔执行一次堆栈检查，
+		这个时间间隔根据设置调整，可能是 100 微秒或者 10 微秒，
+		时间到之后会暂停程序，并追踪堆栈，查看执行到某个地方。
+		随后继续从暂停的地方开始执行
+		经过足够多次采样之后，就可以判断时间消耗最多的部分
+
+## tracing profilers
+python -m cProfile -s tottime grep.py 1000 '^(import|\s*def)[^,]*$' *py
+	-m 指定导入模块
+	-s 指定排序关键词，这里是 total time 总体运行时间
+	1000 表示执行该程序一千次
+	grep.py 之后应该是 grep.py 的参数
+
+	首先输出的是 grep.py 的结果，然后是分析结果
+	其中 
+	ncalls:表示调用次数
+	tottime:表示调用函数花费的总时间
+	
+	一个 caveats 警告是：cProfile 会显示内建函数的用时，
+	一旦代码变得复杂，这些内容可能会占据相当一部分内容
+
+	tac : 又一个新工具，这是 cat 的反面，cat 从前向后展示内容
+	而 tac 从后先前展示，当输出过于冗长时，可以快速显示最后的那部分内容
+	// 我觉得直接 tail -n 20 就行
+
+line profiler
+	trace profiler 的内容不那么直观，改用 line profiler
+	kernprof -l -v grep.py
+		kernprof 会输出每一行代码花费的总时间，以人类易读的形式
+		要这么做，需要在 python 函数前加上装饰符 @profile
+
+3. memory profiler
+	python -m memory_profiler grep.py
+	对于 c 语言，有 valgrind
+
+sudo perf stat stress -c 1
+	如果需要了解程序执行时程序之外发生的一切，
+	比如 cpu 循环多少次 页生成错误，缓存错误等等
+	perf 会跟踪这些信息并且显示 对于底层工作很有用
+
+	stress 是一个程序
+
+sudo perf record stress -c 1
+	record 可以记录程序行为
+
+sudo perf report
+	报告程序执行时的行为
+
+the way of hogging a cpu is by just creating more and more pseudo-random numbers
+
+Flame Grpah
+	人类是视觉生物，所以图像有时候更好理解
+	Flame Graph	是一个 sampling profiler
+	结果以视觉图展示，纵轴表示栈深度，横轴表示采样时间点
+	注意横轴不能表明函数调用的先后顺序，
+
+call graph
+
+htop
+	如果你甚至不知道什么限制程序运行
+	使用 htop
+	h 显示帮助
+	q 退出
+
+	stress -c 4
+	-c 表示使用的 cpu 数量
+
+du
+	-h 人类可读形式
+	disk usage
+
+ncdu
+	du 的可交互替代
+
+lsof
+	list of open file
+	当一些文件被某个进程使用
+	或者某个进程正在监听一个端口
+	，可以显示
+
+python -m http.server 4444
+	在 4444 端口建立一个 http 服务
+
+sudo lsof | grep ":4444 .LISTEN"
+	lsof 会显示大量内容，搜索 4444 端口监听
+	// 没有成功试出来
+
+hyperfine --warmup 3 'fd -e jpg' 'find .iname "*.jpg"'
+	fd 部分情况下比 find 快
+	这里用 hyperfine 证实
+	hyperfine 是一个基准测试工具 benchmarking tool
