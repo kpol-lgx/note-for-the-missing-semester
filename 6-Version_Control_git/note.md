@@ -117,6 +117,9 @@ git remote add <name> <url>
 git push <remote> <local branch>:<remote branch>
 	将本地的一个分支的推送到远程的一个仓库的一个分支
 
+git push --set-upstream <remote> <remote branch>
+	为当前分支设置远程追踪分支
+
 git commit -m "message"
 	-m 提交一个信息不需要打开编辑器
 
